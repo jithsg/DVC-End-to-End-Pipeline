@@ -1,0 +1,107 @@
+schema: '2.0'
+stages:
+  data_split:
+    cmd: python src/data_split.py
+    deps:
+    - path: src/data_split.py
+      hash: md5
+      md5: 1f0647d7bbc5535821086ac6fabe6a1a
+      size: 1291
+    params:
+      params.yaml:
+        base.random_state: 47
+        data_source.local_path: data/red_wine.csv
+        split.split_ratio: 0.2
+    outs:
+    - path: data/split
+      hash: md5
+      md5: fb8afee627054aa7017e10d22457ce49.dir
+      size: 92145
+      nfiles: 2
+  data_processing:
+    cmd: python src/data_processing.py data/processed
+    deps:
+    - path: data/split
+      hash: md5
+      md5: fb8afee627054aa7017e10d22457ce49.dir
+      size: 92145
+      nfiles: 2
+    - path: src/data_processing.py
+      hash: md5
+      md5: f9328a5ce9fd23dd845fcd06de47cfea
+      size: 1416
+    params:
+      params.yaml:
+        process.dir: data/processed
+        process.test_file: final_test.csv
+        process.train_file: final_train.csv
+        split.dir: data/split
+        split.test_file: test.csv
+        split.train_file: train.csv
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 95aa4390deb4fc293e1d4f699a6d8a29.dir
+      size: 92145
+      nfiles: 2
+  train:
+    cmd: python src/train.py data/features model/model.pkl
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 95aa4390deb4fc293e1d4f699a6d8a29.dir
+      size: 92145
+      nfiles: 2
+    - path: src/train.py
+      hash: md5
+      md5: e2b5eb4921c389d2a2493e574c29613d
+      size: 2399
+    params:
+      params.yaml:
+        base.random_state: 47
+        base.target_col: quality
+        model_dir: model
+        process.dir: data/processed
+        process.test_file: final_test.csv
+        process.train_file: final_train.csv
+        train.n_est: 35
+    outs:
+    - path: model/model.pkl
+      hash: md5
+      md5: 27726466d19d270b904594849ed4383b
+      size: 591603
+  evaluate:
+    cmd: python src/evaluate.py model/model.pkl data/processed
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 95aa4390deb4fc293e1d4f699a6d8a29.dir
+      size: 92145
+      nfiles: 2
+    - path: model/model.pkl
+      hash: md5
+      md5: 27726466d19d270b904594849ed4383b
+      size: 591603
+    - path: src/evaluate.py
+      hash: md5
+      md5: 6a4b32d865b0fed30d98894e6c8fcd69
+      size: 6758
+    outs:
+    - path: eval/importance.png
+      hash: md5
+      md5: 7a3fdd94d8bddafc4a6be96c05b2a4f6
+      size: 18510
+    - path: eval/live/metrics.json
+      hash: md5
+      md5: aaa2eaf640f93f74a93c8dacaf3b7c55
+      size: 181
+    - path: eval/live/plots
+      hash: md5
+      md5: 1758ddc5aa476a27eecbc3f58dacf4ba.dir
+      size: 105436
+      nfiles: 4
+    - path: eval/prc
+      hash: md5
+      md5: 737b2e2d0e2019303de8979004c4d4a6.dir
+      size: 8845
+      nfiles: 2
